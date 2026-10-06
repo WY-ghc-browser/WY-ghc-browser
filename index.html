@@ -9,6 +9,13 @@
       href="https://cdn.jsdelivr.net/npm/modern-normalize/modern-normalize.min.css"
     />
     <style>
+      /* Monaco's injected CSS references ./codicon.ttf relative to this page. */
+      @font-face {
+        font-family: codicon;
+        font-display: block;
+        src: url("https://cdn.jsdelivr.net/npm/monaco-editor@0.57.0/esm/vs/base/browser/ui/codicons/codicon/codicon.ttf")
+          format("truetype");
+      }
       html,
       body {
         height: 100%;
@@ -106,7 +113,7 @@
     <script async type="module">
       import * as monaco from "https://cdn.jsdelivr.net/npm/monaco-editor/+esm";
       import { createHighlighter } from "https://esm.sh/shiki@3";
-      import { shikiToMonaco } from "https://esm.sh/@shikijs/monaco@3";
+      import { shikiToMonaco, textmateThemeToMonacoTheme } from "https://esm.sh/@shikijs/monaco@3";
       import {
         ConsoleStdout,
         File,
@@ -155,6 +162,21 @@
       });
       monaco.languages.register({ id: "haskell" });
       shikiToMonaco(highlighter, monaco);
+      // Keep only the editor-surface colors from the Shiki theme and inherit
+      // the rest from vs-dark, so Monaco's widgets (find/replace icons, etc.)
+      // keep their default styling.
+      const shikiTheme = textmateThemeToMonacoTheme(
+        highlighter.getTheme("github-dark")
+      );
+      monaco.editor.defineTheme("github-dark", {
+        ...shikiTheme,
+        inherit: true,
+        colors: Object.fromEntries(
+          Object.entries(shikiTheme.colors).filter(([k]) =>
+            k.startsWith("editor.")
+          )
+        ),
+      });
 
       window.editor = monaco.editor.create(document.getElementById("editor"), {
         value: 'main :: IO ()\nmain = putStrLn "Hello, Haskell!"\n',
