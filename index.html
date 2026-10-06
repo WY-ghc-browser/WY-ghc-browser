@@ -105,6 +105,8 @@
 
     <script async type="module">
       import * as monaco from "https://cdn.jsdelivr.net/npm/monaco-editor/+esm";
+      import { createHighlighter } from "https://esm.sh/shiki@3";
+      import { shikiToMonaco } from "https://esm.sh/@shikijs/monaco@3";
       import {
         ConsoleStdout,
         File,
@@ -147,12 +149,19 @@
         );
       }
 
+      const highlighter = await createHighlighter({
+        themes: ["github-dark"],
+        langs: ["haskell"],
+      });
+      monaco.languages.register({ id: "haskell" });
+      shikiToMonaco(highlighter, monaco);
+
       window.editor = monaco.editor.create(document.getElementById("editor"), {
         value: 'main :: IO ()\nmain = putStrLn "Hello, Haskell!"\n',
         language: "haskell",
         automaticLayout: true,
         minimap: { enabled: false },
-        theme: "vs-dark",
+        theme: "github-dark",
         fontSize: 14,
       });
 
