@@ -86,27 +86,23 @@
         font-weight: 600;
         cursor: pointer;
       }
-      .outputs {
-        display: block;
-      }
-      .outputs .label {
-        font-size: 0.85rem;
-        opacity: 0.8;
-        margin: 0.35rem 0;
-      }
-      .outputs textarea {
-        display: block;
-        width: 100%;
-        min-height: 30vh;
+      #output {
+        flex: 1;
+        min-height: 0;
+        margin: 0;
+        overflow: auto;
         background: #0b1020;
         color: #d1fae5;
         border: 1px solid #223;
         border-radius: 8px;
         padding: 0.6rem;
-        resize: vertical;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
       }
-      .stderr {
-        color: #fee2e2;
+      #output .stderr {
+        color: #f87171;
       }
     </style>
 
@@ -187,14 +183,23 @@
         fontSize: 14,
       });
 
+      function appendOutput(msg, cls) {
+        const out = document.getElementById("output");
+        const span = document.createElement("span");
+        span.className = cls;
+        span.textContent = `${msg}\n`;
+        out.appendChild(span);
+        out.scrollTop = out.scrollHeight;
+      }
+
       const dyld = await main({
         rpc: new DyLDBrowserHost({
           rootfs,
           stdout: (msg) => {
-            document.getElementById("stdout").value += `${msg}\n`;
+            appendOutput(msg, "stdout");
           },
           stderr: (msg) => {
-            document.getElementById("stderr").value += `${msg}\n`;
+            appendOutput(msg, "stderr");
           },
         }),
         searchDirs: [
@@ -211,8 +216,7 @@
         document.getElementById("runBtn").disabled = true;
 
         try {
-          document.getElementById("stdout").value = "";
-          document.getElementById("stderr").value = "";
+          document.getElementById("output").textContent = "";
 
           await main_func(
             document.getElementById("ghcArgs").value,
@@ -244,21 +248,7 @@
           />
           <button id="runBtn" disabled="true">Run</button>
         </div>
-        <div class="outputs">
-          <div class="label">stdout</div>
-          <textarea
-            id="stdout"
-            readonly
-            style="font-family: ui-monospace, Menlo, Consolas, monospace"
-          ></textarea>
-          <div class="label">stderr</div>
-          <textarea
-            id="stderr"
-            class="stderr"
-            readonly
-            style="font-family: ui-monospace, Menlo, Consolas, monospace"
-          ></textarea>
-        </div>
+        <pre id="output"></pre>
       </section>
     </div>
   </body>
